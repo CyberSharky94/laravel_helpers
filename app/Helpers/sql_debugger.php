@@ -19,7 +19,24 @@ if (!function_exists('getRawSql')) {
          *          => Output: "select `name` from `users` where `id` = 1"
          */
 
-        $sql = \Illuminate\Support\Str::replaceArray('?', $query->getBindings(), $query->toSql());
+        // $sql = \Illuminate\Support\Str::replaceArray('?', $query->getBindings(), $query->toSql());
+
+        $replace = function ($sql, $bindings)
+        {
+            $needle = '?';
+            foreach ($bindings as $replace){
+                $pos = strpos($sql, $needle);
+                if ($pos !== false) {
+                    if (gettype($replace) === "string") {
+                        $replace = "'".addslashes($replace)."'";
+                    }
+                    $sql = substr_replace($sql, $replace, $pos, strlen($needle));
+                }
+            }
+            return $sql;
+        };
+        $sql = $replace($query->toSql(), $query->getBindings());
+
         return $sql;
     }
 }
